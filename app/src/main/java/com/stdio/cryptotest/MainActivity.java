@@ -6,7 +6,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -16,6 +18,9 @@ import com.android.volley.toolbox.Volley;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -32,9 +37,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void encrypt(View v) {
-        RequestQueue queue = Volley.newRequestQueue(this);
-        String url ="http://192.168.43.118:5000/encrypt/" + etEncrypt.getText().toString();
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+        String url ="http://192.168.43.118:5000/encrypt";
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
@@ -46,13 +50,25 @@ public class MainActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
                     }
-                }, new Response.ErrorListener() {
+
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(MainActivity.this, error.toString(), Toast.LENGTH_SHORT).show();
+                    }
+                }) {
             @Override
-            public void onErrorResponse(VolleyError error) {
-                System.out.println("response " + error.getMessage());
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("key", "1");
+                params.put("text", etEncrypt.getText().toString());
+                return params;
             }
-        });
-        queue.add(stringRequest);
+        };
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(stringRequest);
     }
 
     public void decrypt(View v) {
